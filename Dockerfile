@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install dependencies
+# Install Python dependencies
 COPY pyproject.toml ./
 RUN pip install --no-cache-dir \
     "google-adk>=2.1.0" \
@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir \
     "sse-starlette>=2.0" \
     "starlette>=0.27"
 
-# Copy application code
+# Copy all source
 COPY agent/ ./agent/
 COPY mcp_server/server.py ./mcp_server/server.py
 COPY mcp_server/open-api-definitions/ ./mcp_server/open-api-definitions/

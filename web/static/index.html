@@ -10,8 +10,13 @@
     <div class="app">
         <!-- Header -->
         <header class="header">
-            <h1>⚡ Zeus</h1>
-            <span class="subtitle">AI-Era Data Engineer</span>
+            <div class="header-left">
+                <h1>⚡ Zeus</h1>
+                <span class="subtitle">AI-Era Data Engineer</span>
+            </div>
+            <div class="header-right">
+                <span class="badge">Gemini 3 · Fivetran MCP · BigQuery</span>
+            </div>
         </header>
 
         <div class="main-layout">
@@ -20,11 +25,27 @@
                 <div class="messages" id="messages">
                     <div class="message assistant">
                         <div class="message-content">
-                            <p>Hello! I'm Zeus, your AI Data Engineer. Tell me what data you want to analyze, and I'll build and maintain the pipeline for you.</p>
-                            <p class="hint">Try: "Analyze my sales pipeline against support tickets"</p>
+                            <p>Hello! I'm <strong>Zeus</strong>, your AI Data Engineer.</p>
+                            <p>Tell me what you want to analyze — I'll build the data pipeline,
+                            keep it fresh, and answer your questions with full data lineage.</p>
                         </div>
                     </div>
                 </div>
+
+                <!-- Demo presets -->
+                <div class="presets">
+                    <span class="presets-label">Try:</span>
+                    <button onclick="setInput('Analyze my sales pipeline against support tickets')">
+                        Sales vs Support
+                    </button>
+                    <button onclick="setInput('List all my Fivetran connections')">
+                        List connections
+                    </button>
+                    <button onclick="setInput('Check the health of all connections and fix any issues')">
+                        Health check
+                    </button>
+                </div>
+
                 <div class="input-area">
                     <input type="text" id="user-input" placeholder="Describe your data goal..." autocomplete="off">
                     <button id="send-btn" onclick="sendMessage()">Send</button>
@@ -34,42 +55,53 @@
             <!-- Readiness Meter Panel -->
             <div class="meter-panel">
                 <h2>Data Readiness</h2>
-                <div class="overall-score" id="overall-score">0%</div>
+                <div class="overall-score" id="overall-score">9%</div>
+                <div class="overall-label">Foundation Health</div>
 
-                <div class="pillar" id="pillar-freshness">
-                    <div class="pillar-header">
-                        <span class="pillar-icon">🔄</span>
-                        <span class="pillar-name">Freshness</span>
-                        <span class="pillar-value">0%</span>
+                <div class="pillars">
+                    <div class="pillar" id="pillar-freshness">
+                        <div class="pillar-header">
+                            <span class="pillar-icon">🔄</span>
+                            <span class="pillar-name">Freshness</span>
+                            <span class="pillar-value">0%</span>
+                        </div>
+                        <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
+                        <div class="pillar-label">No syncs yet</div>
                     </div>
-                    <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
+
+                    <div class="pillar" id="pillar-lineage">
+                        <div class="pillar-header">
+                            <span class="pillar-icon">🔗</span>
+                            <span class="pillar-name">Lineage</span>
+                            <span class="pillar-value">0%</span>
+                        </div>
+                        <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
+                        <div class="pillar-label">No lineage tracked</div>
+                    </div>
+
+                    <div class="pillar" id="pillar-governance">
+                        <div class="pillar-header">
+                            <span class="pillar-icon">🛡️</span>
+                            <span class="pillar-name">Governance</span>
+                            <span class="pillar-value">10%</span>
+                        </div>
+                        <div class="pillar-bar"><div class="pillar-fill" style="width: 10%"></div></div>
+                        <div class="pillar-label">Base configuration</div>
+                    </div>
+
+                    <div class="pillar" id="pillar-interoperability">
+                        <div class="pillar-header">
+                            <span class="pillar-icon">🌐</span>
+                            <span class="pillar-name">Interop</span>
+                            <span class="pillar-value">25%</span>
+                        </div>
+                        <div class="pillar-bar"><div class="pillar-fill" style="width: 25%"></div></div>
+                        <div class="pillar-label">MCP architecture active</div>
+                    </div>
                 </div>
 
-                <div class="pillar" id="pillar-lineage">
-                    <div class="pillar-header">
-                        <span class="pillar-icon">🔗</span>
-                        <span class="pillar-name">Lineage</span>
-                        <span class="pillar-value">0%</span>
-                    </div>
-                    <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
-                </div>
-
-                <div class="pillar" id="pillar-governance">
-                    <div class="pillar-header">
-                        <span class="pillar-icon">🛡️</span>
-                        <span class="pillar-name">Governance</span>
-                        <span class="pillar-value">10%</span>
-                    </div>
-                    <div class="pillar-bar"><div class="pillar-fill" style="width: 10%"></div></div>
-                </div>
-
-                <div class="pillar" id="pillar-interoperability">
-                    <div class="pillar-header">
-                        <span class="pillar-icon">🌐</span>
-                        <span class="pillar-name">Interop</span>
-                        <span class="pillar-value">25%</span>
-                    </div>
-                    <div class="pillar-bar"><div class="pillar-fill" style="width: 25%"></div></div>
+                <div class="meter-footer">
+                    Powered by Fivetran MCP + Google ADK
                 </div>
             </div>
         </div>
@@ -78,13 +110,17 @@
     <!-- Approval Modal -->
     <div class="modal-overlay" id="approval-modal" style="display: none;">
         <div class="modal">
-            <h3>⚠️ Approval Required</h3>
+            <div class="modal-header">
+                <span class="modal-icon">⚠️</span>
+                <h3>Approval Required</h3>
+            </div>
+            <p class="modal-subtitle">Zeus wants to perform a write operation. Review and approve:</p>
             <div class="modal-body" id="approval-body">
-                <!-- Filled dynamically -->
+                <!-- Filled dynamically by app.js -->
             </div>
             <div class="modal-actions">
-                <button class="btn-reject" onclick="respondApproval(false)">Reject</button>
-                <button class="btn-approve" onclick="respondApproval(true)">Approve</button>
+                <button class="btn-reject" onclick="respondApproval(false)">✕ Reject</button>
+                <button class="btn-approve" onclick="respondApproval(true)">✓ Approve</button>
             </div>
         </div>
     </div>

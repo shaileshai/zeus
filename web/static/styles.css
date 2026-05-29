@@ -294,3 +294,119 @@ body {
     background: var(--border);
     border-radius: 3px;
 }
+
+/* Presets */
+.presets {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 24px;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.presets-label {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.presets button {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.presets button:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+/* Header badge */
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-right { margin-left: auto; }
+.badge {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    background: var(--bg-tertiary);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+/* Pillar label */
+.pillar-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+/* Pillars container */
+.pillars { display: flex; flex-direction: column; gap: 20px; flex: 1; }
+
+/* Overall label */
+.overall-label {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+/* Meter footer */
+.meter-footer {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+/* Step messages */
+.message.step .message-content {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding: 4px 8px;
+}
+
+/* Lineage badge */
+.lineage-badge {
+    display: inline-block;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-top: 4px;
+    cursor: help;
+    border-bottom: 1px dashed var(--accent);
+}
+
+/* Code in messages */
+.message-content code {
+    background: var(--bg-tertiary);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 0.85em;
+}
+
+/* Modal subtitle */
+.modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+/* Modal header */
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.modal-icon { font-size: 1.3rem; }
