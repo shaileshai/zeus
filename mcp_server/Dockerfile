@@ -1,20 +1,22 @@
-FROM node:20-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm ci --production
+# Install dependencies
+COPY fivetran_pyproject.toml pyproject.toml
+RUN pip install --no-cache-dir mcp>=1.25.0 httpx>=0.28.0 python-dotenv>=1.0.0 \
+    starlette uvicorn
 
-# Copy source and build
-COPY . .
-RUN npm run build 2>/dev/null || true
+# Copy server source and API definitions
+COPY server.py .
+COPY http_server.py .
+COPY fivetran-open-api-definition.json .
+COPY open-api-definitions/ ./open-api-definitions/
 
 # Environment configuration
 ENV FIVETRAN_ALLOW_WRITES=true
-ENV MCP_TRANSPORT=sse
 ENV PORT=8080
 
 EXPOSE 8080
 
-CMD ["node", "dist/index.js"]
+CMD ["python", "http_server.py"]

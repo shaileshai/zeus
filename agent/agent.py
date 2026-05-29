@@ -1,10 +1,13 @@
 """Zeus root agent definition using Google ADK 2.1.0."""
 
 import logging
+import os
+from pathlib import Path
 
 from google.adk import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams
+from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams, StdioConnectionParams
+from mcp.client.stdio import StdioServerParameters
 
 from . import config
 from .prompts import SYSTEM_PROMPT, PLANNER_PROMPT, HEALER_PROMPT, ANALYST_PROMPT
@@ -14,11 +17,32 @@ from .tools.bigquery_tool import query_bigquery
 logger = logging.getLogger(__name__)
 
 # --- Fivetran MCP Toolset ---
-# McpToolset connects lazily when the agent first runs.
-# require_confirmation=is_write_tool gates all write operations through the
-# approval flow defined in callbacks.py.
+# Supports two transport modes:
+#   stdio: spawns mcp_server/server.py as a subprocess (local dev)
+#   sse:   connects to HTTP/SSE Cloud Run service (production)
+
+_MCP_SERVER_PATH = str(Path(__file__).parent.parent / "mcp_server" / "server.py")
+
+if config.MCP_TRANSPORT == "stdio":
+    _connection_params = StdioConnectionParams(
+        server_params=StdioServerParameters(
+            command="python",
+            args=[_MCP_SERVER_PATH],
+            env={
+                **os.environ,
+                "FIVETRAN_API_KEY": config.FIVETRAN_API_KEY,
+                "FIVETRAN_API_SECRET": config.FIVETRAN_API_SECRET,
+                "FIVETRAN_ALLOW_WRITES": "true",
+            },
+        )
+    )
+    logger.info("MCP transport: stdio (subprocess: %s)", _MCP_SERVER_PATH)
+else:
+    _connection_params = SseServerParams(url=config.FIVETRAN_MCP_URL)
+    logger.info("MCP transport: SSE (%s)", config.FIVETRAN_MCP_URL)
+
 fivetran_mcp = McpToolset(
-    connection_params=SseServerParams(url=config.FIVETRAN_MCP_URL),
+    connection_params=_connection_params,
     require_confirmation=is_write_tool,
 )
 

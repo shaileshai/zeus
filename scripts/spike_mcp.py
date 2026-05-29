@@ -29,15 +29,39 @@ load_dotenv()
 
 
 async def run_spike():
+    transport = os.getenv("MCP_TRANSPORT", "stdio")
     mcp_url = os.getenv("FIVETRAN_MCP_URL", "http://localhost:8080/sse")
-    print(f"Connecting to MCP server at: {mcp_url}")
+    mcp_server_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mcp_server", "server.py")
+
+    print(f"Transport mode: {transport}")
+    if transport == "stdio":
+        print(f"MCP server: {mcp_server_path}")
+    else:
+        print(f"MCP URL: {mcp_url}")
     print()
 
     try:
         from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-        from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams
+        from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams, StdioConnectionParams
+        from mcp.client.stdio import StdioServerParameters
 
-        mcp = McpToolset(connection_params=SseServerParams(url=mcp_url))
+        if transport == "stdio":
+            connection_params = StdioConnectionParams(
+                server_params=StdioServerParameters(
+                    command="python",
+                    args=[mcp_server_path],
+                    env={
+                        **os.environ,
+                        "FIVETRAN_API_KEY": os.getenv("FIVETRAN_API_KEY", ""),
+                        "FIVETRAN_API_SECRET": os.getenv("FIVETRAN_API_SECRET", ""),
+                        "FIVETRAN_ALLOW_WRITES": "true",
+                    },
+                )
+            )
+        else:
+            connection_params = SseServerParams(url=mcp_url)
+
+        mcp = McpToolset(connection_params=connection_params)
 
         print("Fetching tools...")
         tools = await mcp.get_tools()
