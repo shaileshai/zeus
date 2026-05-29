@@ -3,7 +3,7 @@
 from google.adk import Agent
 
 from ..config import GEMINI_MODEL
-from ..prompts import HEALER_PROMPT
+from ..prompts import HEALER_PROMPT, HEALER_EXTENDED_PROMPT
 
 
 def create_healer(fivetran_mcp) -> Agent:
@@ -15,6 +15,6 @@ def create_healer(fivetran_mcp) -> Agent:
             "Monitors Fivetran connection health and automatically diagnoses and "
             "heals broken pipelines. Re-tests, resyncs, and reports."
         ),
-        instruction=HEALER_PROMPT,
+        instruction=HEALER_EXTENDED_PROMPT,
         tools=[fivetran_mcp],
     )

@@ -17,6 +17,7 @@ from sse_starlette.sse import EventSourceResponse
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from agent import readiness as meter
 from agent.config import WEB_HOST, WEB_PORT
+from agent.tools.approval_tool import get_pending_approvals
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -25,9 +26,6 @@ app = FastAPI(title="Zeus — AI Data Engineer", version="0.1.0")
 
 # Per-session conversation history (in-memory; replace with Firestore for production)
 conversation_history: list[dict] = []
-
-# Approval gate: pending approvals keyed by action_id
-pending_approvals: dict[str, asyncio.Future] = {}
 
 
 # ---  API Routes ---
@@ -93,8 +91,10 @@ async def approve_action(request: Request):
     action_id = body.get("action_id", "")
     approved = body.get("approved", False)
 
-    if action_id in pending_approvals:
-        future = pending_approvals.pop(action_id)
+    # Resolve pending future in approval_tool (agent is waiting on this)
+    pending = get_pending_approvals()
+    if action_id in pending:
+        future = pending.pop(action_id)
         if not future.done():
             future.set_result("approved" if approved else "rejected")
 
