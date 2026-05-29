@@ -13,12 +13,12 @@ pytestmark = pytest.mark.skipif(
 @pytest.mark.asyncio
 async def test_mcp_connection():
     """Verify we can connect to the Fivetran MCP server."""
-    from google.adk.tools.mcp_tool import MCPToolset, SseServerParams
+    from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
+    from google.adk.tools.mcp_tool.mcp_session_manager import SseServerParams
 
     mcp_url = os.getenv("FIVETRAN_MCP_URL")
-    tools, exit_stack = await MCPToolset.from_server(
-        connection_params=SseServerParams(url=mcp_url)
-    )
+    mcp = McpToolset(connection_params=SseServerParams(url=mcp_url))
+    tools = await mcp.get_tools()
 
     assert len(tools) > 0, "Should discover MCP tools"
 
@@ -26,4 +26,4 @@ async def test_mcp_connection():
     tool_names = [t.name for t in tools]
     assert "list_connections" in tool_names, "Should have list_connections tool"
 
-    await exit_stack.aclose()
+    await mcp.close()

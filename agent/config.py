@@ -10,8 +10,8 @@ load_dotenv()
 GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT", "")
 GOOGLE_CLOUD_LOCATION = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
 
-# Model
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.0-flash")
+# Model — ADK 2.1 default is gemini-2.5-flash
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 # Fivetran MCP
 FIVETRAN_MCP_URL = os.getenv("FIVETRAN_MCP_URL", "http://localhost:8080/sse")

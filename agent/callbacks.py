@@ -1,42 +1,34 @@
-"""Callback hooks for the Zeus agent — approval gate logic."""
+"""Callback hooks for the Zeus agent — approval gate and tool logging."""
 
 import logging
 from typing import Optional
 
-from google.adk.agents.callback_context import CallbackContext
-from google.adk.tools import ToolContext
+from google.adk.tools import BaseTool
+from google.adk.agents.context import Context
 
 from . import config
 
 logger = logging.getLogger(__name__)
 
 
+def is_write_tool(tool_name: str) -> bool:
+    """Return True if the tool name represents a write/mutating operation.
+
+    Used by McpToolset(require_confirmation=...) to gate write operations.
+    """
+    return any(tool_name.startswith(prefix) for prefix in config.WRITE_TOOL_PREFIXES)
+
+
 def before_tool_callback(
-    tool: any, args: dict, tool_context: ToolContext
+    tool: BaseTool, args: dict, tool_context: Context
 ) -> Optional[dict]:
-    """Intercept write operations and require human approval.
+    """Log every tool call. Write tools are already gated by McpToolset.require_confirmation.
 
     Returns None to allow the tool call to proceed.
-    Returns a dict to short-circuit with that response instead.
+    Returns a dict to short-circuit execution with that response.
     """
-    tool_name = getattr(tool, "name", str(tool))
-
-    # Check if this is a write operation
-    is_write = any(tool_name.startswith(prefix) for prefix in config.WRITE_TOOL_PREFIXES)
-
-    if not is_write:
-        return None  # Allow read operations without gate
-
-    # For write operations, log the pending approval
-    # The actual approval UX is handled by the web UI layer
-    # which intercepts the agent's "request_approval" tool calls
-    logger.info(f"Write operation detected: {tool_name} with args: {args}")
-
-    # In the full implementation, this would:
-    # 1. Emit an approval request event to the UI
-    # 2. Block until the user approves/rejects
-    # 3. Return None (proceed) or dict (reject)
-    #
-    # For now, we let it through and rely on the agent's prompt
-    # to always call request_approval before write operations.
-    return None
+    tool_name = tool.name
+    is_write = is_write_tool(tool_name)
+    log_level = logging.WARNING if is_write else logging.DEBUG
+    logger.log(log_level, "Tool call: %s | write=%s | args=%s", tool_name, is_write, args)
+    return None  # Always proceed; confirmation handled by McpToolset
