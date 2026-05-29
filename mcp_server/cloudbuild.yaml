@@ -1,0 +1,30 @@
+# Fivetran MCP Server — Cloud Build config
+# Builds and deploys the MCP server to Cloud Run
+
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/$PROJECT_ID/zeus/fivetran-mcp:$SHORT_SHA', '.']
+    dir: 'mcp_server'
+
+  # Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'us-central1-docker.pkg.dev/$PROJECT_ID/zeus/fivetran-mcp:$SHORT_SHA']
+
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'fivetran-mcp'
+      - '--image=us-central1-docker.pkg.dev/$PROJECT_ID/zeus/fivetran-mcp:$SHORT_SHA'
+      - '--region=us-central1'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--set-secrets=FIVETRAN_API_KEY=fivetran-api-key:latest,FIVETRAN_API_SECRET=fivetran-api-secret:latest'
+      - '--set-env-vars=FIVETRAN_ALLOW_WRITES=true,MCP_TRANSPORT=sse'
+
+images:
+  - 'us-central1-docker.pkg.dev/$PROJECT_ID/zeus/fivetran-mcp:$SHORT_SHA'

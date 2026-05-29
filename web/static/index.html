@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeus — AI Data Engineer</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="app">
+        <!-- Header -->
+        <header class="header">
+            <h1>⚡ Zeus</h1>
+            <span class="subtitle">AI-Era Data Engineer</span>
+        </header>
+
+        <div class="main-layout">
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <div class="messages" id="messages">
+                    <div class="message assistant">
+                        <div class="message-content">
+                            <p>Hello! I'm Zeus, your AI Data Engineer. Tell me what data you want to analyze, and I'll build and maintain the pipeline for you.</p>
+                            <p class="hint">Try: "Analyze my sales pipeline against support tickets"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="user-input" placeholder="Describe your data goal..." autocomplete="off">
+                    <button id="send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+
+            <!-- Readiness Meter Panel -->
+            <div class="meter-panel">
+                <h2>Data Readiness</h2>
+                <div class="overall-score" id="overall-score">0%</div>
+
+                <div class="pillar" id="pillar-freshness">
+                    <div class="pillar-header">
+                        <span class="pillar-icon">🔄</span>
+                        <span class="pillar-name">Freshness</span>
+                        <span class="pillar-value">0%</span>
+                    </div>
+                    <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
+                </div>
+
+                <div class="pillar" id="pillar-lineage">
+                    <div class="pillar-header">
+                        <span class="pillar-icon">🔗</span>
+                        <span class="pillar-name">Lineage</span>
+                        <span class="pillar-value">0%</span>
+                    </div>
+                    <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
+                </div>
+
+                <div class="pillar" id="pillar-governance">
+                    <div class="pillar-header">
+                        <span class="pillar-icon">🛡️</span>
+                        <span class="pillar-name">Governance</span>
+                        <span class="pillar-value">10%</span>
+                    </div>
+                    <div class="pillar-bar"><div class="pillar-fill" style="width: 10%"></div></div>
+                </div>
+
+                <div class="pillar" id="pillar-interoperability">
+                    <div class="pillar-header">
+                        <span class="pillar-icon">🌐</span>
+                        <span class="pillar-name">Interop</span>
+                        <span class="pillar-value">25%</span>
+                    </div>
+                    <div class="pillar-bar"><div class="pillar-fill" style="width: 25%"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Approval Modal -->
+    <div class="modal-overlay" id="approval-modal" style="display: none;">
+        <div class="modal">
+            <h3>⚠️ Approval Required</h3>
+            <div class="modal-body" id="approval-body">
+                <!-- Filled dynamically -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-reject" onclick="respondApproval(false)">Reject</button>
+                <button class="btn-approve" onclick="respondApproval(true)">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
