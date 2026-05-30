@@ -9,7 +9,7 @@ Record at the deployed public URL. Keep the dataset tiny so syncs finish fast.
 - Fivetran trial active; API key/secret in Secret Manager. Google Sheet source ready (sales pipeline).
 - `zeus_data` BigQuery dataset exists. Meter reset via the ↺ button (or `/api/reset`).
 - A second browser tab / terminal ready to "break" the source for the self-heal beat.
-- Model set to the best available Gemini Pro on Vertex (`GEMINI_MODEL`).
+- Model set to `GEMINI_MODEL=gemini-3.1-pro-preview` (latest Gemini 3 Pro) with `GOOGLE_CLOUD_LOCATION=global`.
 
 ---
 

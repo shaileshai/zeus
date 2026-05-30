@@ -8,8 +8,9 @@
 set -euo pipefail
 
 PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-}"
-REGION="${GOOGLE_CLOUD_LOCATION:-us-central1}"
-GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+REGION="${GOOGLE_CLOUD_REGION:-us-central1}"          # Cloud Run / resources region
+MODEL_LOCATION="${GOOGLE_CLOUD_LOCATION:-global}"     # Vertex model endpoint (Gemini 3 = global)
+GEMINI_MODEL="${GEMINI_MODEL:-gemini-3-flash-preview}"
 BIGQUERY_DATASET="${BIGQUERY_DATASET:-zeus_data}"
 FIVETRAN_MCP_URL="${FIVETRAN_MCP_URL:-}"
 
@@ -40,7 +41,7 @@ gcloud run deploy zeus-web \
     --region="$REGION" \
     --platform=managed \
     --allow-unauthenticated \
-    --set-env-vars="GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${REGION},GOOGLE_GENAI_USE_VERTEXAI=true,GEMINI_MODEL=${GEMINI_MODEL},BIGQUERY_DATASET=${BIGQUERY_DATASET}${EXTRA_ENV}" \
+    --set-env-vars="GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${MODEL_LOCATION},GOOGLE_CLOUD_REGION=${REGION},GOOGLE_GENAI_USE_VERTEXAI=true,GEMINI_MODEL=${GEMINI_MODEL},BIGQUERY_DATASET=${BIGQUERY_DATASET}${EXTRA_ENV}" \
     --set-secrets="FIVETRAN_API_KEY=fivetran-api-key:latest,FIVETRAN_API_SECRET=fivetran-api-secret:latest" \
     --cpu=2 \
     --memory=2Gi \

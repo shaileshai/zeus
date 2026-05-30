@@ -8,7 +8,8 @@ import sys
 def deploy():
     """Deploy the agent using ADK CLI."""
     project = os.getenv("GOOGLE_CLOUD_PROJECT")
-    region = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
+    # Agent Engine deploys to a real region (not the model's "global" endpoint).
+    region = os.getenv("GOOGLE_CLOUD_REGION", "us-central1")
 
     if not project:
         print("Error: Set GOOGLE_CLOUD_PROJECT environment variable")

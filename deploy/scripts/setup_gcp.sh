@@ -5,7 +5,7 @@
 set -euo pipefail
 
 PROJECT_ID="${GOOGLE_CLOUD_PROJECT:-}"
-REGION="${GOOGLE_CLOUD_LOCATION:-us-central1}"
+REGION="${GOOGLE_CLOUD_REGION:-us-central1}"
 
 if [ -z "$PROJECT_ID" ]; then
     echo "Error: Set GOOGLE_CLOUD_PROJECT environment variable"

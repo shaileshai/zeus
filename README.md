@@ -9,7 +9,7 @@
 
 ## What is Zeus?
 
-Zeus is an AI agent built on **Google Cloud (Gemini on Vertex AI + Google ADK)** that operates a **Fivetran** data foundation autonomously:
+Zeus is an AI agent built on **Google Cloud (Gemini 3 on Vertex AI + Google ADK)** that operates a **Fivetran** data foundation autonomously:
 
 1. **Provision by intent** — describe what you want to analyze; Zeus plans and creates the pipelines.
 2. **Human-in-the-loop** — every write (create/modify/sync) pauses for explicit operator approval.
@@ -76,7 +76,8 @@ Alternatively, `adk web` launches ADK's built-in dev chat UI against the same `r
 and `docker compose up --build` runs the production container locally (mounts your ADC).
 
 ### Environment Variables
-See `.env.example`. Key ones: `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`,
+See `.env.example`. Key ones: `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION` (the Vertex model
+endpoint — **`global`** for Gemini 3), `GOOGLE_CLOUD_REGION` (resources, e.g. `us-central1`),
 `GOOGLE_GENAI_USE_VERTEXAI=true`, `GEMINI_MODEL`, `FIVETRAN_API_KEY`, `FIVETRAN_API_SECRET`,
 `MCP_TRANSPORT` (`stdio` local / `sse` remote), `BIGQUERY_DATASET`.
 
@@ -84,7 +85,7 @@ See `.env.example`. Key ones: `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`,
 
 ```bash
 export GOOGLE_CLOUD_PROJECT=your-project-id
-export GOOGLE_CLOUD_LOCATION=us-central1
+export GOOGLE_CLOUD_REGION=us-central1   # Cloud Run / BigQuery region (model uses the global endpoint)
 
 # One-time: enable APIs, Artifact Registry, BigQuery dataset, secrets, IAM grants
 ./deploy/scripts/setup_gcp.sh
@@ -110,7 +111,7 @@ zeus/
 
 ## Tech Stack
 - **Agent framework:** [Google ADK](https://google.github.io/adk-docs/) 2.1 (Python)
-- **Model:** Gemini 2.5 (Flash for dev, Pro for the demo) on **Vertex AI**
+- **Model:** Gemini 3 on **Vertex AI** (`gemini-3-flash-preview` for dev, `gemini-3.1-pro-preview` for the demo; served from the `global` endpoint)
 - **Data integration:** [Fivetran MCP server](https://github.com/fivetran/fivetran-mcp) (MIT), write operations enabled
 - **Data warehouse:** BigQuery
 - **Web:** FastAPI + server-sent events + vanilla JS

@@ -33,7 +33,8 @@ moves red→green as the agent works, mirroring Fivetran's own "data foundation 
 
 ## How we built it
 - **Reasoning layer:** a Google **ADK** agent (`root_agent`) with four sub-agents — planner,
-  provisioner, healer, analyst — orchestrated by Gemini on **Vertex AI**.
+  provisioner, healer, analyst — orchestrated by **Gemini 3** on **Vertex AI**
+  (`gemini-3-flash-preview` for dev, `gemini-3.1-pro-preview` for the demo).
 - **Tooling layer:** the **Fivetran MCP server** (the official MIT fork) with write operations
   enabled, exposing ~77 Fivetran control-plane tools to the agent over MCP.
 - **Data layer:** **BigQuery** as both the Fivetran destination and the agent's query target, with
