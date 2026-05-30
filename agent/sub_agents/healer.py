@@ -2,6 +2,7 @@
 
 from google.adk import Agent
 
+from ..callbacks import before_tool_callback
 from ..config import GEMINI_MODEL
 from ..prompts import HEALER_PROMPT, HEALER_EXTENDED_PROMPT
 
@@ -17,4 +18,5 @@ def create_healer(fivetran_mcp) -> Agent:
         ),
         instruction=HEALER_EXTENDED_PROMPT,
         tools=[fivetran_mcp],
+        before_tool_callback=before_tool_callback,
     )

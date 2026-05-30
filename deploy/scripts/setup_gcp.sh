@@ -54,6 +54,23 @@ echo -n "PLACEHOLDER" | gcloud secrets create fivetran-api-secret \
     --data-file=- --replication-policy=automatic \
     2>/dev/null || echo "  fivetran-api-secret (already exists)"
 
+# Grant the Cloud Run runtime service account (default compute SA) the roles the
+# deployed agent needs: call Vertex AI, read/write BigQuery, read the secrets.
+echo "Granting IAM roles to the Cloud Run runtime service account..."
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+RUNTIME_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+for ROLE in roles/aiplatform.user roles/bigquery.dataEditor roles/bigquery.jobUser; do
+    gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+        --member="serviceAccount:${RUNTIME_SA}" --role="$ROLE" \
+        --condition=None --quiet >/dev/null
+done
+for SECRET in fivetran-api-key fivetran-api-secret; do
+    gcloud secrets add-iam-policy-binding "$SECRET" \
+        --member="serviceAccount:${RUNTIME_SA}" \
+        --role="roles/secretmanager.secretAccessor" --quiet >/dev/null
+done
+echo "  granted to ${RUNTIME_SA}"
+
 echo ""
 echo "=== Setup Complete ==="
 echo ""

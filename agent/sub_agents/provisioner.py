@@ -2,6 +2,7 @@
 
 from google.adk import Agent
 
+from ..callbacks import before_tool_callback
 from ..config import GEMINI_MODEL
 from ..prompts import PROVISIONER_PROMPT
 
@@ -19,4 +20,5 @@ def create_provisioner(fivetran_mcp) -> Agent:
         description=PROVISIONER_DESCRIPTION,
         instruction=PROVISIONER_PROMPT,
         tools=[fivetran_mcp],
+        before_tool_callback=before_tool_callback,
     )

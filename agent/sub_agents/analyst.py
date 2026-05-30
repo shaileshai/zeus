@@ -2,6 +2,7 @@
 
 from google.adk import Agent
 
+from ..callbacks import before_tool_callback
 from ..config import GEMINI_MODEL
 from ..prompts import ANALYST_PROMPT
 from ..tools.bigquery_tool import query_bigquery, list_bigquery_tables
@@ -18,4 +19,5 @@ def create_analyst(fivetran_mcp) -> Agent:
         ),
         instruction=ANALYST_PROMPT,
         tools=[query_bigquery, list_bigquery_tables, fivetran_mcp],
+        before_tool_callback=before_tool_callback,
     )

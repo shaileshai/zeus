@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeus — Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <style>
+        .settings-layout { padding: 28px 32px; overflow-y: auto; height: calc(100vh - 52px); }
+        .settings-header { margin-bottom: 24px; display: flex; align-items: flex-end; justify-content: space-between; }
+        .settings-header h2 { font-size: 22px; font-weight: 800; background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .settings-header p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .settings-grid .full-width { grid-column: 1 / -1; }
+        
+        .settings-section { margin-bottom: 0; }
+        .section-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .section-badge { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: 600; }
+        .badge-ok { background: rgba(52,211,153,0.15); color: var(--success); }
+        .badge-warn { background: rgba(251,191,36,0.15); color: var(--warning); }
+        
+        .settings-card {
+            background: var(--bg-elevated); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 16px;
+            box-shadow: var(--shadow-glow);
+        }
+        
+        .field { margin-bottom: 14px; }
+        .field:last-child { margin-bottom: 0; }
+        .field-label { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+        .field-hint { font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+        
+        .field-input, .field-select {
+            width: 100%; padding: 9px 12px;
+            background: var(--bg-base); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); font-size: 12px;
+            color: var(--text-primary); font-family: var(--mono);
+            transition: border-color 0.2s;
+        }
+        .field-input:focus, .field-select:focus { outline: none; border-color: rgba(255,181,82,0.4); }
+        .field-input::placeholder { color: var(--text-muted); }
+        .field-select { appearance: none; cursor: pointer; }
+        
+        .field-input.secret { letter-spacing: 1px; }
+        
+        .transport-toggle {
+            display: flex; background: var(--bg-base); border-radius: var(--radius-sm);
+            border: 1px solid var(--border); overflow: hidden;
+        }
+        .transport-opt {
+            flex: 1; padding: 8px 12px; text-align: center;
+            font-size: 11px; font-weight: 600; cursor: pointer;
+            border: none; background: none; color: var(--text-muted);
+            transition: all 0.15s; font-family: var(--font);
+        }
+        .transport-opt.active { background: var(--brand-gradient); color: #fff; }
+        
+        .save-row { display: flex; gap: 10px; margin-top: 24px; grid-column: 1 / -1; }
+        .btn-save {
+            padding: 10px 24px; border-radius: var(--radius-sm);
+            background: var(--brand-gradient); color: #fff;
+            border: none; font-size: 12px; font-weight: 700;
+            cursor: pointer; font-family: var(--font); transition: all 0.15s;
+        }
+        .btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,88,115,0.3); }
+        .btn-back {
+            padding: 10px 24px; border-radius: var(--radius-sm);
+            background: var(--bg-elevated); color: var(--text-secondary);
+            border: 1px solid var(--border); font-size: 12px; font-weight: 600;
+            cursor: pointer; font-family: var(--font); text-decoration: none;
+            display: inline-flex; align-items: center; transition: all 0.15s;
+        }
+        .btn-back:hover { border-color: var(--brand-orange); color: var(--text-primary); }
+        
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            padding: 10px 16px; border-radius: var(--radius-sm);
+            background: var(--bg-elevated); border: 1px solid var(--success);
+            color: var(--success); font-size: 12px; font-weight: 600;
+            transform: translateY(60px); opacity: 0; transition: all 0.3s;
+            z-index: 100;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        
+        .version-footer { text-align: center; padding: 20px 0; font-size: 10px; color: var(--text-muted); grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <canvas id="particles" class="particle-canvas"></canvas>
+
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none"><path d="M16 2L28 8V24L16 30L4 24V8L16 2Z" stroke="url(#lg2)" stroke-width="2" fill="none"/><path d="M16 8L22 11V17L16 20L10 17V11L16 8Z" fill="url(#lg2)"/><defs><linearGradient id="lg2" x1="4" y1="2" x2="28" y2="30"><stop stop-color="#ffb552"/><stop offset="0.5" stop-color="#ff5873"/><stop offset="1" stop-color="#b83dff"/></linearGradient></defs></svg>
+                    </div>
+                    <div class="logo-text"><h1>Zeus</h1><span class="logo-subtitle">Settings</span></div>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="/" class="header-btn" title="Back to Dashboard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+                </a>
+            </div>
+        </header>
+
+        <div class="settings-layout">
+            <div class="settings-header">
+                <div>
+                    <h2>Configuration</h2>
+                    <p>Manage your agent, model, and integration settings</p>
+                </div>
+                <div class="save-row" style="margin:0">
+                    <a href="/" class="btn-back">← Dashboard</a>
+                    <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+
+            <div class="settings-grid">
+                <!-- AI Model -->
+                <div class="settings-section">
+                    <div class="section-title">AI Model <span class="section-badge badge-ok" id="model-badge">Active</span></div>
+                    <div class="settings-card">
+                        <div class="field">
+                            <label class="field-label">Gemini Model</label>
+                            <select class="field-select" id="gemini_model">
+                                <option value="gemini-3.5-flash">Gemini 3.5 Flash (Recommended)</option>
+                                <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview</option>
+                                <option value="gemini-3-flash-preview">Gemini 3 Flash Preview</option>
+                                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite</option>
+                                <option value="gemini-pro-latest">Gemini Pro Latest</option>
+                                <option value="gemini-flash-latest">Gemini Flash Latest</option>
+                                <option value="gemini-flash-lite-latest">Gemini Flash Lite Latest</option>
+                            </select>
+                            <div class="field-hint">Flash models are faster and cheaper; Pro models are more capable.</div>
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Google AI API Key</label>
+                            <input type="password" class="field-input secret" id="google_ai_api_key" placeholder="AIza..." autocomplete="off">
+                            <div class="field-hint">Required for Gemini API access. Get one at <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--brand-orange)">AI Studio</a>.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Cloud -->
+                <div class="settings-section">
+                    <div class="section-title">Google Cloud</div>
+                    <div class="settings-card">
+                        <div class="field">
+                            <label class="field-label">Project ID</label>
+                            <input type="text" class="field-input" id="google_cloud_project" placeholder="my-gcp-project">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">Location / Region</label>
+                            <input type="text" class="field-input" id="google_cloud_location" placeholder="us-central1">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">BigQuery Dataset</label>
+                            <input type="text" class="field-input" id="bigquery_dataset" placeholder="zeus_data">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fivetran -->
+                <div class="settings-section">
+                    <div class="section-title">Fivetran Integration <span class="section-badge badge-warn" id="fivetran-badge">Setup Required</span></div>
+                    <div class="settings-card">
+                        <div class="field">
+                            <label class="field-label">API Key</label>
+                            <input type="password" class="field-input secret" id="fivetran_api_key" placeholder="Enter Fivetran API key" autocomplete="off">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">API Secret</label>
+                            <input type="password" class="field-input secret" id="fivetran_api_secret" placeholder="Enter Fivetran API secret" autocomplete="off">
+                        </div>
+                        <div class="field">
+                            <label class="field-label">MCP Server URL</label>
+                            <input type="text" class="field-input" id="fivetran_mcp_url" placeholder="http://localhost:8080/sse">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MCP Transport -->
+                <div class="settings-section">
+                    <div class="section-title">MCP Transport</div>
+                    <div class="settings-card">
+                        <div class="field">
+                            <label class="field-label">Transport Mode</label>
+                            <div class="transport-toggle" id="transport-toggle">
+                                <button class="transport-opt" data-val="stdio" onclick="setTransport('stdio')">STDIO</button>
+                                <button class="transport-opt active" data-val="sse" onclick="setTransport('sse')">SSE</button>
+                            </div>
+                            <div class="field-hint">STDIO for local dev, SSE for Cloud Run deployment</div>
+                        </div>
+                        <div style="padding: 10px; background: var(--bg-base); border-radius: var(--radius-sm); margin-top: 8px;">
+                            <div style="font-size:9px; color:var(--text-muted); line-height:1.6">
+                                <strong style="color:var(--brand-orange)">STDIO</strong> — Runs MCP server as a local subprocess. Best for development.<br>
+                                <strong style="color:var(--brand-purple)">SSE</strong> — Connects to a remote MCP server via HTTP SSE. Required for Cloud Run.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="version-footer">Zeus v0.1.0 · Google Cloud Rapid Agent Hackathon · Fivetran Track</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Settings saved successfully</div>
+
+    <script>
+        // Particles (simplified for settings page)
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        function initP() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            particles = Array.from({length: 20}, () => ({x: Math.random()*canvas.width, y: Math.random()*canvas.height, vx:(Math.random()-0.5)*0.2, vy:(Math.random()-0.5)*0.2, r:Math.random()+0.5, color:['#ffb552','#ff5873','#b83dff'][Math.floor(Math.random()*3)]}));
+        }
+        function animP() { ctx.clearRect(0,0,canvas.width,canvas.height); particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>canvas.width)p.vx*=-1;if(p.y<0||p.y>canvas.height)p.vy*=-1;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=p.color;ctx.globalAlpha=0.3;ctx.fill();}); ctx.globalAlpha=1; requestAnimationFrame(animP); }
+        window.addEventListener('resize', initP); initP(); animP();
+
+        // Load settings
+        async function loadSettings() {
+            try {
+                const resp = await fetch('/api/settings');
+                const data = await resp.json();
+                document.getElementById('gemini_model').value = data.gemini_model || 'gemini-2.5-flash';
+                document.getElementById('google_ai_api_key').value = data.google_ai_api_key || '';
+                document.getElementById('google_cloud_project').value = data.google_cloud_project || '';
+                document.getElementById('google_cloud_location').value = data.google_cloud_location || '';
+                document.getElementById('bigquery_dataset').value = data.bigquery_dataset || '';
+                document.getElementById('fivetran_api_key').value = data.fivetran_api_key || '';
+                document.getElementById('fivetran_api_secret').value = data.fivetran_api_secret || '';
+                document.getElementById('fivetran_mcp_url').value = data.fivetran_mcp_url || '';
+                setTransport(data.mcp_transport || 'sse');
+
+                // Update badges
+                if (data.google_ai_api_key && !data.google_ai_api_key.startsWith('••••')) {
+                    // has key
+                } else if (data.google_ai_api_key && data.google_ai_api_key.startsWith('••••')) {
+                    document.getElementById('model-badge').textContent = 'Configured';
+                }
+                if (data.fivetran_api_key && data.fivetran_api_key.startsWith('••••')) {
+                    document.getElementById('fivetran-badge').textContent = 'Connected';
+                    document.getElementById('fivetran-badge').className = 'section-badge badge-ok';
+                }
+            } catch(e) {}
+        }
+
+        function setTransport(val) {
+            document.querySelectorAll('.transport-opt').forEach(b => {
+                b.classList.toggle('active', b.dataset.val === val);
+            });
+        }
+
+        function getTransport() {
+            const active = document.querySelector('.transport-opt.active');
+            return active ? active.dataset.val : 'sse';
+        }
+
+        async function saveSettings() {
+            const body = {
+                gemini_model: document.getElementById('gemini_model').value,
+                google_ai_api_key: document.getElementById('google_ai_api_key').value,
+                google_cloud_project: document.getElementById('google_cloud_project').value,
+                google_cloud_location: document.getElementById('google_cloud_location').value,
+                bigquery_dataset: document.getElementById('bigquery_dataset').value,
+                fivetran_api_key: document.getElementById('fivetran_api_key').value,
+                fivetran_api_secret: document.getElementById('fivetran_api_secret').value,
+                fivetran_mcp_url: document.getElementById('fivetran_mcp_url').value,
+                mcp_transport: getTransport(),
+            };
+            try {
+                await fetch('/api/settings', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+                showToast('Settings saved successfully');
+            } catch(e) {
+                showToast('Failed to save settings');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        loadSettings();
+    </script>
+</body>
+</html>

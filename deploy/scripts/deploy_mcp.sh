@@ -20,12 +20,14 @@ cd "$(dirname "$0")/../../mcp_server"
 
 gcloud run deploy fivetran-mcp \
     --source=. \
+    --project="$PROJECT_ID" \
     --region="$REGION" \
     --platform=managed \
     --allow-unauthenticated \
     --port=8080 \
     --set-secrets="FIVETRAN_API_KEY=fivetran-api-key:latest,FIVETRAN_API_SECRET=fivetran-api-secret:latest" \
     --set-env-vars="FIVETRAN_ALLOW_WRITES=true,MCP_TRANSPORT=sse" \
+    --timeout=3600 \
     --min-instances=0 \
     --max-instances=2 \
     --memory=512Mi

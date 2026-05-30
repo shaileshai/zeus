@@ -3,10 +3,12 @@
 import os
 import pytest
 
-# Skip these tests unless MCP server is available
+# Skip unless a *real* MCP server URL is configured (ignore .env placeholders).
+_mcp_url = os.getenv("FIVETRAN_MCP_URL", "")
+_is_placeholder = (not _mcp_url) or ("xxx" in _mcp_url) or _mcp_url.startswith("your-")
 pytestmark = pytest.mark.skipif(
-    not os.getenv("FIVETRAN_MCP_URL"),
-    reason="FIVETRAN_MCP_URL not set — MCP server not available",
+    _is_placeholder,
+    reason="FIVETRAN_MCP_URL not set to a real MCP server — skipping integration test",
 )
 
 

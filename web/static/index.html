@@ -3,105 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zeus — AI Data Engineer</title>
+    <title>Zeus — Autonomous Data Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
     <div class="app">
+        <canvas id="particles" class="particle-canvas"></canvas>
+
         <!-- Header -->
         <header class="header">
             <div class="header-left">
-                <h1>⚡ Zeus</h1>
-                <span class="subtitle">AI-Era Data Engineer</span>
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="26" height="26" viewBox="0 0 32 32" fill="none">
+                            <path d="M16 2L28 8V24L16 30L4 24V8L16 2Z" stroke="url(#logo-grad)" stroke-width="2" fill="none"/>
+                            <path d="M16 8L22 11V17L16 20L10 17V11L16 8Z" fill="url(#logo-grad)"/>
+                            <defs><linearGradient id="logo-grad" x1="4" y1="2" x2="28" y2="30"><stop stop-color="#ffb552"/><stop offset="0.5" stop-color="#ff5873"/><stop offset="1" stop-color="#b83dff"/></linearGradient></defs>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Zeus</h1>
+                        <span class="logo-subtitle">Autonomous Data Agent</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="status-pill" id="agent-status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Awaiting Instructions</span>
+                </div>
             </div>
             <div class="header-right">
-                <span class="badge">Gemini 3 · Fivetran MCP · BigQuery</span>
+                <!-- Context meter -->
+                <div class="context-meter" id="context-meter" title="Session context remaining">
+                    <svg class="ctx-ring" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" fill="none" stroke="var(--bg-elevated)" stroke-width="3"/>
+                        <circle class="ctx-fill" id="ctx-fill" cx="12" cy="12" r="10" fill="none" stroke="url(#ctx-grad)" stroke-width="3"
+                            stroke-dasharray="62.8" stroke-dashoffset="0" stroke-linecap="round"/>
+                        <defs><linearGradient id="ctx-grad" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#ffb552"/><stop offset="1" stop-color="#b83dff"/></linearGradient></defs>
+                    </svg>
+                    <span class="ctx-label" id="ctx-label">100%</span>
+                </div>
+                <!-- Fivetran link -->
+                <a href="https://fivetran.com/dashboard" target="_blank" class="header-btn" title="Open Fivetran Dashboard">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3"/></svg>
+                </a>
+                <!-- Settings -->
+                <a href="/settings.html" class="header-btn" title="Settings">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+                </a>
             </div>
         </header>
 
         <div class="main-layout">
-            <!-- Chat Panel -->
-            <div class="chat-panel">
-                <div class="messages" id="messages">
-                    <div class="message assistant">
-                        <div class="message-content">
-                            <p>Hello! I'm <strong>Zeus</strong>, your AI Data Engineer.</p>
-                            <p>Tell me what you want to analyze — I'll build the data pipeline,
-                            keep it fresh, and answer your questions with full data lineage.</p>
-                        </div>
+            <!-- Left: Sessions + Agent Roster -->
+            <div class="orchestration-panel">
+                <button class="panel-collapse-btn left-collapse" id="toggle-left-btn" onclick="toggleLeftPanel()" title="Collapse left panel">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <!-- Sessions -->
+                <div class="panel-section sessions-section">
+                    <div class="panel-title-row">
+                        <span class="panel-title">SESSIONS</span>
+                        <button class="new-session-btn" onclick="createSession()" title="New session">+</button>
+                    </div>
+                    <div class="sessions-list" id="sessions-list">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
 
-                <!-- Demo presets -->
-                <div class="presets">
-                    <span class="presets-label">Try:</span>
-                    <button onclick="setInput('Analyze my sales pipeline against support tickets')">
-                        Sales vs Support
-                    </button>
-                    <button onclick="setInput('List all my Fivetran connections')">
-                        List connections
-                    </button>
-                    <button onclick="setInput('Check the health of all connections and fix any issues')">
-                        Health check
-                    </button>
+                <!-- Agent Roster -->
+                <div class="panel-section">
+                    <div class="panel-title">AGENT ROSTER</div>
+                    <div class="agents-roster" id="agents-roster">
+                        <div class="agent-node" id="agent-orchestrator" data-agent="orchestrator">
+                            <div class="agent-avatar orchestrator">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"/></svg>
+                            </div>
+                            <div class="agent-info"><span class="agent-name">Orchestrator</span><span class="agent-role">Root Agent</span></div>
+                            <div class="agent-pulse active"></div>
+                        </div>
+                        <div class="agent-node" id="agent-planner"><div class="agent-avatar planner">📋</div><div class="agent-info"><span class="agent-name">Planner</span><span class="agent-role">Strategy & DAG</span></div><div class="agent-pulse"></div></div>
+                        <div class="agent-node" id="agent-provisioner"><div class="agent-avatar provisioner">🔌</div><div class="agent-info"><span class="agent-name">Provisioner</span><span class="agent-role">Fivetran MCP</span></div><div class="agent-pulse"></div></div>
+                        <div class="agent-node" id="agent-healer"><div class="agent-avatar healer">🩺</div><div class="agent-info"><span class="agent-name">Self-Healer</span><span class="agent-role">Error Recovery</span></div><div class="agent-pulse"></div></div>
+                        <div class="agent-node" id="agent-analyst"><div class="agent-avatar analyst">📊</div><div class="agent-info"><span class="agent-name">Analyst</span><span class="agent-role">BigQuery & Lineage</span></div><div class="agent-pulse"></div></div>
+                    </div>
                 </div>
 
-                <div class="input-area">
-                    <input type="text" id="user-input" placeholder="Describe your data goal..." autocomplete="off">
-                    <button id="send-btn" onclick="sendMessage()">Send</button>
+                <!-- Workflow -->
+                <div class="panel-section workflow-section">
+                    <div class="panel-title">ACTIVE WORKFLOW</div>
+                    <div class="workflow-canvas" id="workflow-canvas">
+                        <div class="workflow-empty"><div class="workflow-empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><span>No active workflow</span></div>
+                    </div>
+                </div>
+
+                <!-- Fivetran Quick Actions -->
+                <div class="panel-section">
+                    <div class="panel-title">FIVETRAN ACTIONS</div>
+                    <div class="fivetran-actions">
+                        <button class="ft-action" onclick="setInput('List all my Fivetran connectors and their sync status')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                            List Connectors
+                        </button>
+                        <button class="ft-action" onclick="setInput('Create a new connector from Google Sheets to BigQuery')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                            New Connector
+                        </button>
+                        <button class="ft-action" onclick="setInput('Trigger a manual sync on all active connectors')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0115-6.7L21 8M3 22v-6h6M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+                            Sync All
+                        </button>
+                        <button class="ft-action" onclick="setInput('Show connector health and fix any broken pipelines')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Health Check
+                        </button>
+                        <button class="ft-action" onclick="setInput('Pause all syncs and show me the pause schedule')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                            Pause Syncs
+                        </button>
+                        <button class="ft-action" onclick="setInput('Show data lineage for the sales_orders table')">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+                            View Lineage
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="panel-section">
+                    <div class="panel-title">MCP TOOLS</div>
+                    <div class="tools-grid" id="tools-grid">
+                        <div class="tool-chip">list_connectors</div>
+                        <div class="tool-chip">create_connector</div>
+                        <div class="tool-chip">sync_connector</div>
+                        <div class="tool-chip">get_tables</div>
+                        <div class="tool-chip">modify_schema</div>
+                        <div class="tool-chip">query_bigquery</div>
+                        <div class="tool-chip">pause_connector</div>
+                        <div class="tool-chip">delete_connector</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Readiness Meter Panel -->
-            <div class="meter-panel">
-                <h2>Data Readiness</h2>
-                <div class="overall-score" id="overall-score">9%</div>
-                <div class="overall-label">Foundation Health</div>
-
-                <div class="pillars">
-                    <div class="pillar" id="pillar-freshness">
-                        <div class="pillar-header">
-                            <span class="pillar-icon">🔄</span>
-                            <span class="pillar-name">Freshness</span>
-                            <span class="pillar-value">0%</span>
+            <!-- Center: Activity Timeline -->
+            <div class="activity-panel">
+                <div class="activity-feed" id="activity-feed">
+                    <div class="idle-state" id="idle-state">
+                        <div class="idle-orb"><div class="orb-ring"></div><div class="orb-ring delay-1"></div><div class="orb-ring delay-2"></div><div class="orb-core"></div></div>
+                        <h2>Zeus is ready</h2>
+                        <p>Describe your data goal and watch the autonomous agent orchestrate the workflow — planning, provisioning, healing, and querying — all with full lineage and human-in-the-loop governance.</p>
+                        <div class="quick-actions">
+                            <button class="quick-action" onclick="setInput('Analyze my sales pipeline against support tickets')"><span class="qa-icon">📊</span><span class="qa-text">Cross-analyze sales vs support pipelines</span></button>
+                            <button class="quick-action" onclick="setInput('Check health of all Fivetran connectors and auto-fix any issues')"><span class="qa-icon">🩺</span><span class="qa-text">Health check & self-heal connectors</span></button>
+                            <button class="quick-action" onclick="setInput('Set up a complete data pipeline from PostgreSQL to BigQuery with hourly syncs')"><span class="qa-icon">🚀</span><span class="qa-text">Provision new data pipeline</span></button>
                         </div>
-                        <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
-                        <div class="pillar-label">No syncs yet</div>
-                    </div>
-
-                    <div class="pillar" id="pillar-lineage">
-                        <div class="pillar-header">
-                            <span class="pillar-icon">🔗</span>
-                            <span class="pillar-name">Lineage</span>
-                            <span class="pillar-value">0%</span>
-                        </div>
-                        <div class="pillar-bar"><div class="pillar-fill" style="width: 0%"></div></div>
-                        <div class="pillar-label">No lineage tracked</div>
-                    </div>
-
-                    <div class="pillar" id="pillar-governance">
-                        <div class="pillar-header">
-                            <span class="pillar-icon">🛡️</span>
-                            <span class="pillar-name">Governance</span>
-                            <span class="pillar-value">10%</span>
-                        </div>
-                        <div class="pillar-bar"><div class="pillar-fill" style="width: 10%"></div></div>
-                        <div class="pillar-label">Base configuration</div>
-                    </div>
-
-                    <div class="pillar" id="pillar-interoperability">
-                        <div class="pillar-header">
-                            <span class="pillar-icon">🌐</span>
-                            <span class="pillar-name">Interop</span>
-                            <span class="pillar-value">25%</span>
-                        </div>
-                        <div class="pillar-bar"><div class="pillar-fill" style="width: 25%"></div></div>
-                        <div class="pillar-label">MCP architecture active</div>
                     </div>
                 </div>
 
-                <div class="meter-footer">
-                    Powered by Fivetran MCP + Google ADK
+                <!-- Input area -->
+                <div class="input-area">
+                    <div class="input-container">
+                        <div class="input-prefix">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity="0.4"><path d="M4 12h16M12 4l8 8-8 8"/></svg>
+                        </div>
+                        <input type="text" id="user-input" placeholder="Instruct the agent..." autocomplete="off">
+                        <!-- Audio input -->
+                        <button class="audio-btn" id="audio-btn" onclick="toggleAudio()" title="Voice input (click to record)">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                        </button>
+                        <button id="send-btn" onclick="sendMessage()" title="Execute (Enter)">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Readiness Meter -->
+            <div class="meter-panel">
+                <button class="panel-collapse-btn right-collapse" id="toggle-right-btn" onclick="toggleRightPanel()" title="Collapse right panel">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+                <div class="meter-header">
+                    <div class="panel-title">FOUNDATION HEALTH</div>
+                    <button class="reset-btn" onclick="resetMeter()" title="Reset for demo">↺</button>
+                </div>
+
+                <div class="score-ring-container">
+                    <svg class="score-ring" viewBox="0 0 120 120">
+                        <defs>
+                            <linearGradient id="ring-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#ffb552"/>
+                                <stop offset="50%" stop-color="#ff5873"/>
+                                <stop offset="100%" stop-color="#b83dff"/>
+                            </linearGradient>
+                        </defs>
+                        <circle class="ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="6"/>
+                        <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52" fill="none" stroke-width="6"
+                            stroke-dasharray="326.7" stroke-dashoffset="297" stroke-linecap="round"/>
+                    </svg>
+                    <div class="score-value" id="overall-score">9<span class="score-unit">%</span></div>
+                </div>
+
+                <div class="pillars">
+                    <div class="pillar" id="pillar-freshness"><div class="pillar-header"><span class="pillar-dot freshness"></span><span class="pillar-name">Freshness</span><span class="pillar-value">0%</span></div><div class="pillar-bar"><div class="pillar-fill" style="width:0%"></div></div><span class="pillar-label">No syncs yet</span></div>
+                    <div class="pillar" id="pillar-lineage"><div class="pillar-header"><span class="pillar-dot lineage"></span><span class="pillar-name">Lineage</span><span class="pillar-value">0%</span></div><div class="pillar-bar"><div class="pillar-fill" style="width:0%"></div></div><span class="pillar-label">No lineage tracked</span></div>
+                    <div class="pillar" id="pillar-governance"><div class="pillar-header"><span class="pillar-dot governance"></span><span class="pillar-name">Governance</span><span class="pillar-value">10%</span></div><div class="pillar-bar"><div class="pillar-fill" style="width:10%"></div></div><span class="pillar-label">Base config</span></div>
+                    <div class="pillar" id="pillar-interoperability"><div class="pillar-header"><span class="pillar-dot interop"></span><span class="pillar-name">Interop</span><span class="pillar-value">25%</span></div><div class="pillar-bar"><div class="pillar-fill" style="width:25%"></div></div><span class="pillar-label">MCP active</span></div>
+                </div>
+
+                <div class="protocol-status">
+                    <div class="proto-item"><span class="proto-dot active"></span><span>MCP Protocol</span></div>
+                    <div class="proto-item"><span class="proto-dot" id="webhook-dot"></span><span>Webhook Monitor</span></div>
+                    <div class="proto-item"><span class="proto-dot active"></span><span>Approval Gate</span></div>
                 </div>
             </div>
         </div>
@@ -111,16 +227,13 @@
     <div class="modal-overlay" id="approval-modal" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <span class="modal-icon">⚠️</span>
-                <h3>Approval Required</h3>
+                <div class="modal-icon-wrapper"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><path d="M12 9v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+                <div><h3>Human Approval Required</h3><p class="modal-subtitle">The agent requests permission for a write operation</p></div>
             </div>
-            <p class="modal-subtitle">Zeus wants to perform a write operation. Review and approve:</p>
-            <div class="modal-body" id="approval-body">
-                <!-- Filled dynamically by app.js -->
-            </div>
+            <div class="modal-body" id="approval-body"></div>
             <div class="modal-actions">
-                <button class="btn-reject" onclick="respondApproval(false)">✕ Reject</button>
-                <button class="btn-approve" onclick="respondApproval(true)">✓ Approve</button>
+                <button class="btn-reject" onclick="respondApproval(false)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>Reject</button>
+                <button class="btn-approve" onclick="respondApproval(true)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg>Approve & Execute</button>
             </div>
         </div>
     </div>

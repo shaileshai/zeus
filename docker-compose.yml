@@ -8,8 +8,12 @@ services:
     env_file:
       - .env
     environment:
-      - WEB_PORT=8080
+      - PORT=8080
       - MCP_TRANSPORT=stdio
+      - GOOGLE_GENAI_USE_VERTEXAI=true
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/adc.json
     volumes:
       # Mount .env so secrets update without rebuild
       - ./.env:/app/.env:ro
+      # Mount local ADC so the container can authenticate to Vertex AI / BigQuery
+      - ~/.config/gcloud/application_default_credentials.json:/app/adc.json:ro

@@ -2,6 +2,7 @@
 
 import logging
 import os
+import sys
 from pathlib import Path
 
 from google.adk import Agent
@@ -11,7 +12,7 @@ from mcp.client.stdio import StdioServerParameters
 
 from . import config
 from .prompts import SYSTEM_PROMPT
-from .callbacks import before_tool_callback, is_write_tool
+from .callbacks import before_tool_callback
 from .tools.bigquery_tool import query_bigquery
 from .sub_agents.planner import planner_agent
 from .sub_agents.provisioner import create_provisioner
@@ -30,7 +31,7 @@ _MCP_SERVER_PATH = str(Path(__file__).parent.parent / "mcp_server" / "server.py"
 if config.MCP_TRANSPORT == "stdio":
     _connection_params = StdioConnectionParams(
         server_params=StdioServerParameters(
-            command="python",
+            command=sys.executable,  # current interpreter (venv) — "python" may not exist
             args=[_MCP_SERVER_PATH],
             env={
                 **os.environ,
@@ -45,9 +46,10 @@ else:
     _connection_params = SseServerParams(url=config.FIVETRAN_MCP_URL)
     logger.info("MCP transport: SSE (%s)", config.FIVETRAN_MCP_URL)
 
+# Write-tool approval is enforced in before_tool_callback (which receives the
+# tool name); McpToolset.require_confirmation can't do per-tool-name gating.
 fivetran_mcp = McpToolset(
     connection_params=_connection_params,
-    require_confirmation=is_write_tool,
 )
 
 # --- Sub-Agents (created with shared MCP toolset) ---
