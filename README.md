@@ -1,83 +1,120 @@
 # Zeus — AI-Era Data Engineer
 
-> An AI agent that builds and maintains your data foundation. Drop in a goal, get a fully provisioned, self-healing data pipeline with answers backed by lineage.
+> An AI agent that builds and maintains your data foundation. Give it a plain-English goal; it provisions Fivetran pipelines into BigQuery under human approval, keeps them fresh, heals them when they break, and answers questions with full lineage.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+**Live demo:** _deploying — public Cloud Run URL will be added here._
+**Demo video:** _link to be added._
+
 ## What is Zeus?
 
-Zeus is an AI agent built on **Google Cloud (Gemini 3 + ADK + Vertex AI Agent Engine)** that operates a **Fivetran** data foundation autonomously:
+Zeus is an AI agent built on **Google Cloud (Gemini on Vertex AI + Google ADK)** that operates a **Fivetran** data foundation autonomously:
 
-1. **Provision by intent** — Describe what you want to analyze; Zeus creates the pipelines
-2. **Self-healing** — Detects and fixes broken connections automatically
-3. **Answers with lineage** — Every data point traced back to source, table, and sync time
-4. **Open protocol** — Drives Fivetran via MCP (Model Context Protocol), not a closed API
+1. **Provision by intent** — describe what you want to analyze; Zeus plans and creates the pipelines.
+2. **Human-in-the-loop** — every write (create/modify/sync) pauses for explicit operator approval.
+3. **Self-healing** — detects broken connections, diagnoses, re-tests and re-syncs.
+4. **Answers with lineage** — every figure is traced to its source connection, table, and sync time.
+5. **Open protocol** — drives Fivetran's control plane via **MCP** (Model Context Protocol), not a closed API.
+
+A live **readiness meter** tracks the four data-foundation pillars — Freshness, Lineage, Governance, Interoperability — moving red→green as the agent works.
 
 Built for the [Google Cloud Rapid Agent Hackathon](https://rapid-agent.devpost.com/) · Fivetran Track.
 
 ## Architecture
 
 ```
-User → Web UI (Cloud Run)
-         → ADK Agent (Vertex AI Agent Engine, Gemini 3)
-              → Fivetran MCP Server (Cloud Run) → Fivetran SaaS → Sources
-              → BigQuery (query + lineage)
+        plain-English goal
+                │
+                ▼
+   Web UI + FastAPI (Cloud Run)
+                │  in-process ADK Runner
+                ▼
+   Zeus root agent (Gemini on Vertex AI)
+     ├─ planner / provisioner / healer / analyst sub-agents
+     ├─ Fivetran MCP server  ── Fivetran REST API ── sources (Google Sheets / Postgres)
+     └─ BigQuery (query + lineage)            │
+                                               ▼ syncs
+                                          BigQuery (zeus_data)
+
+   Secrets (Fivetran key/secret) → Secret Manager
+   Approval gate: ADK tool-confirmation surfaced to the UI before every write
 ```
 
-## Quick Start
+The agent runs **in-process** inside the Cloud Run web service via an ADK `Runner`; the Fivetran MCP
+server runs as a stdio subprocess in the same container by default (set `FIVETRAN_MCP_URL` to use a
+separate Cloud Run MCP service over SSE instead). The model is served by **Vertex AI** (not the AI
+Studio API key) to satisfy the hackathon's Gemini + Agent Builder requirement.
+
+## Quick Start (local)
 
 ### Prerequisites
 - Python 3.11+
-- Google Cloud project with billing enabled
-- Fivetran account (free trial)
-- Docker (for local MCP server)
+- A Google Cloud project with billing enabled, Vertex AI + BigQuery APIs on
+- A Fivetran account (free trial) with an API key/secret
+- `gcloud` CLI
 
-### Setup
-
+### Run
 ```bash
-# Clone
 git clone https://github.com/YOUR_USERNAME/zeus.git
 cd zeus
 
-# Install dependencies
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 
-# Configure environment
 cp .env.example .env
-# Edit .env with your credentials
+# Edit .env: set GOOGLE_CLOUD_PROJECT, FIVETRAN_API_KEY, FIVETRAN_API_SECRET
 
-# Run the MCP server locally
-cd mcp_server && docker compose up -d && cd ..
+# Authenticate to Vertex AI / BigQuery (the agent uses ADC, no API key):
+gcloud auth application-default login
 
-# Start the agent (local dev)
-adk web
+# Start the web app + agent (MCP runs in-process over stdio):
+python web/server.py            # serves on http://localhost:$WEB_PORT (default 8000)
 ```
+
+Alternatively, `adk web` launches ADK's built-in dev chat UI against the same `root_agent`,
+and `docker compose up --build` runs the production container locally (mounts your ADC).
 
 ### Environment Variables
+See `.env.example`. Key ones: `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`,
+`GOOGLE_GENAI_USE_VERTEXAI=true`, `GEMINI_MODEL`, `FIVETRAN_API_KEY`, `FIVETRAN_API_SECRET`,
+`MCP_TRANSPORT` (`stdio` local / `sse` remote), `BIGQUERY_DATASET`.
 
-See `.env.example` for all required configuration.
+## Deploy to Google Cloud
+
+```bash
+export GOOGLE_CLOUD_PROJECT=your-project-id
+export GOOGLE_CLOUD_LOCATION=us-central1
+
+# One-time: enable APIs, Artifact Registry, BigQuery dataset, secrets, IAM grants
+./deploy/scripts/setup_gcp.sh
+
+# Add your real Fivetran credentials to Secret Manager:
+echo -n 'YOUR_KEY'    | gcloud secrets versions add fivetran-api-key    --data-file=-
+echo -n 'YOUR_SECRET' | gcloud secrets versions add fivetran-api-secret --data-file=-
+
+# Build + deploy the web app (prints the public URL):
+./deploy/scripts/deploy_web.sh
+```
 
 ## Project Structure
-
 ```
 zeus/
-├── agent/          # ADK Agent (core logic, sub-agents, tools)
-├── mcp_server/     # Fivetran MCP server (Docker)
-├── web/            # Web UI (FastAPI + static frontend)
-├── deploy/         # GCP deployment scripts
-└── tests/          # Test suite
+├── agent/          # ADK agent: root + planner/provisioner/healer/analyst, tools, approval gate, readiness meter
+├── mcp_server/     # Fivetran MCP server (fork) + SSE wrapper + Dockerfile
+├── web/            # FastAPI server (ADK Runner + SSE) and static UI
+├── deploy/         # GCP setup + Cloud Run deploy scripts
+├── docs/           # Demo script, Devpost write-up
+└── tests/          # Unit tests (approval gate, readiness, tools)
 ```
 
 ## Tech Stack
-
-- **Agent Framework:** [Google ADK](https://google.github.io/adk-docs/) (Python)
-- **Model:** Gemini 3 (Flash for dev, Pro for production)
-- **Runtime:** Vertex AI Agent Engine
-- **Data Integration:** [Fivetran MCP Server](https://github.com/fivetran/fivetran-mcp) (MIT)
-- **Data Warehouse:** BigQuery
-- **Web:** FastAPI + Vanilla JS
-- **Infrastructure:** Google Cloud Run, Secret Manager
+- **Agent framework:** [Google ADK](https://google.github.io/adk-docs/) 2.1 (Python)
+- **Model:** Gemini 2.5 (Flash for dev, Pro for the demo) on **Vertex AI**
+- **Data integration:** [Fivetran MCP server](https://github.com/fivetran/fivetran-mcp) (MIT), write operations enabled
+- **Data warehouse:** BigQuery
+- **Web:** FastAPI + server-sent events + vanilla JS
+- **Infrastructure:** Google Cloud Run, Secret Manager, Artifact Registry
 
 ## License
-
 MIT — see [LICENSE](./LICENSE)
