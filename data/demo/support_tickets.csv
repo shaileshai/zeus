@@ -1,0 +1,7 @@
+ticket_id,account_name,status,priority,subject,created_date
+TIC-101,Acme Corp,Open,High,Sync failures on nightly export,2026-05-26
+TIC-102,Acme Corp,Open,Critical,API returning 500s,2026-05-28
+TIC-103,Globex,Resolved,Low,Question about billing,2026-05-10
+TIC-104,Hooli,Open,Critical,Data pipeline stalled,2026-05-29
+TIC-105,Hooli,Open,High,Dashboard latency,2026-05-27
+TIC-106,Initech,Open,Medium,Feature request: SSO,2026-05-22

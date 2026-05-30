@@ -1,0 +1,7 @@
+opportunity_id,account_name,stage,amount,owner,close_date
+OPP-001,Acme Corp,Negotiation,120000,Dana Lee,2026-06-15
+OPP-002,Globex,Proposal,85000,Sam Ortiz,2026-06-30
+OPP-003,Initech,Closed Won,240000,Dana Lee,2026-05-20
+OPP-004,Umbrella,Qualification,54000,Priya Shah,2026-07-10
+OPP-005,Hooli,Negotiation,310000,Sam Ortiz,2026-06-22
+OPP-006,Acme Corp,Proposal,67000,Priya Shah,2026-07-01
