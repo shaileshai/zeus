@@ -36,8 +36,12 @@ Record at the deployed public URL. Keep the dataset tiny so syncs finish fast.
 > wants to create a BigQuery destination and a Fivetran connection to my sales sheet. I can see the
 > exact action and parameters. I approve."
 **Action:** Click **Approve & Execute**. Let it run `modify_connection_table_config` (scopes to only
-the needed tables), `run_connection_setup_tests`, `sync_connection` — approving each write.
-**On screen:** tool-activity feed shows real MCP calls; **Interoperability** and **Freshness** climb.
+the needed tables), `run_connection_setup_tests`, `sync_connection`, and scope access via
+`create_group`/`add_user_to_group` — approving each write.
+**Narration (over the access-scoping step):**
+> "...and it scopes access to just the analytics team — least privilege. That's the Governance pillar."
+**On screen:** tool-activity pills show real MCP calls; **Interoperability**, **Freshness**, and
+**Governance** all climb.
 
 ### 1:10 — Answer with lineage (35s)
 **On screen:** sync completes; analyst pulses; an answer appears.

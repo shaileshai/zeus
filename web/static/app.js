@@ -133,7 +133,9 @@ const STEP_META = {
     query_bigquery: {i:'📊', l:'Query BigQuery'},
     create_account_webhook: {i:'🔔', l:'Set freshness webhook'},
     test_webhook: {i:'✅', l:'Test webhook'},
-    create_group: {i:'🛡️', l:'Configure governance'},
+    create_group: {i:'🛡️', l:'Create access group'},
+    add_user_to_group: {i:'🛡️', l:'Scope user access'},
+    modify_group: {i:'🛡️', l:'Update access controls'},
 };
 
 function addToolActivity(tool) {

@@ -388,8 +388,8 @@ def _bump_meter_for_response(name: str, resp) -> bool:
         meter.on_sync_completed(_extract_id(resp) or _pending_conn or "unknown")
     elif name.startswith("create_account_webhook") or name.startswith("create_group_webhook"):
         meter.on_webhook_created()
-    elif name in ("create_group", "modify_group", "create_destination"):
-        meter.on_governance_configured(teams_count=1)
+    elif name in ("create_group", "modify_group", "add_user_to_group", "delete_user_from_group"):
+        meter.on_governance_configured()
     elif name in ("get_connection_details", "query_bigquery"):
         # The analyst attaches provenance to every BigQuery answer, and pulls
         # sync metadata from get_connection_details — both advance lineage.

@@ -36,6 +36,7 @@ class ReadinessState:
     webhook_active: bool = False
     mcp_calls_made: int = 0
     lineage_answers: int = 0
+    governance_actions: int = 0
 
     @property
     def overall(self) -> float:
@@ -144,11 +145,11 @@ def on_lineage_answer():
 
 
 def on_governance_configured(teams_count: int = 0):
-    """Called when teams/access controls are configured."""
-    base = 40 + min(60, teams_count * 20)
-    _state.governance.value = base
-    _state.governance.label = f"{teams_count} team(s) configured"
-    _state.governance.detail = "Access scoped to required connections"
+    """Called for each access-control action (create group, scope users, etc.)."""
+    _state.governance_actions += 1
+    _state.governance.value = min(100, 40 + _state.governance_actions * 20)
+    _state.governance.label = f"{_state.governance_actions} access control(s) configured"
+    _state.governance.detail = "Access scoped to required connections (least privilege)"
 
 
 # Initialize with base scores
