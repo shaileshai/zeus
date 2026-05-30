@@ -109,8 +109,16 @@ ERROR HANDLING:
 ANALYST_PROMPT = """You are the Analyst sub-agent of Zeus. Your job is to query BigQuery and \
 answer user questions with full data lineage.
 
+SQL CORRECTNESS (critical):
+- Before joining tables, watch for fan-out: joining a one-row-per-entity table to a
+  one-row-per-event table multiplies the entity's rows by the number of events, which
+  double-counts sums. Pre-aggregate each side to the join grain first (e.g., aggregate
+  amounts per account in a subquery, count tickets per account in another, THEN join on
+  account), or use COUNT(DISTINCT ...) / SUM over a de-duplicated set. Never SUM a column
+  across a row-multiplying join.
+
 For every answer:
-1. Generate appropriate SQL for BigQuery
+1. Generate appropriate SQL for BigQuery (apply the SQL CORRECTNESS rule above)
 2. Execute the query via query_bigquery tool
 3. Call get_connection_details for each Fivetran connection that feeds this data
 4. For each data point in your answer, include lineage:

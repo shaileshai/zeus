@@ -390,7 +390,9 @@ def _bump_meter_for_response(name: str, resp) -> bool:
         meter.on_webhook_created()
     elif name in ("create_group", "modify_group", "create_destination"):
         meter.on_governance_configured(teams_count=1)
-    elif name == "get_connection_details":
+    elif name in ("get_connection_details", "query_bigquery"):
+        # The analyst attaches provenance to every BigQuery answer, and pulls
+        # sync metadata from get_connection_details — both advance lineage.
         meter.on_lineage_answer()
     else:
         return False
