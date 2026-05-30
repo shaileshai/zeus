@@ -120,6 +120,49 @@ function clearActivityFeed() {
         </div>`;
 }
 
+// ===== Tool activity (compact) + live workflow steps =====
+const STEP_META = {
+    create_destination: {i:'🎯', l:'Create destination'},
+    create_connection: {i:'🔌', l:'Create connection'},
+    modify_connection_table_config: {i:'🎚️', l:'Scope tables'},
+    run_connection_setup_tests: {i:'🧪', l:'Run setup tests'},
+    sync_connection: {i:'🔄', l:'Sync data'},
+    resync_connection: {i:'🔄', l:'Re-sync data'},
+    get_connection_details: {i:'🔍', l:'Inspect connection'},
+    list_connections: {i:'📋', l:'List connections'},
+    query_bigquery: {i:'📊', l:'Query BigQuery'},
+    create_account_webhook: {i:'🔔', l:'Set freshness webhook'},
+    test_webhook: {i:'✅', l:'Test webhook'},
+    create_group: {i:'🛡️', l:'Configure governance'},
+};
+
+function addToolActivity(tool) {
+    const feed = document.getElementById('activity-feed');
+    const idle = document.getElementById('idle-state');
+    if (idle) idle.remove();
+    const el = document.createElement('div');
+    el.className = 'tool-activity-line';
+    el.innerHTML = `<span class="tool-gear">⚙</span><code>${escapeHtml(tool)}</code><span class="tool-tag">MCP</span>`;
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+}
+
+function addWorkflowStep(tool) {
+    const canvas = document.getElementById('workflow-canvas');
+    let steps = canvas.querySelector('.workflow-steps');
+    if (!steps) { canvas.innerHTML = '<div class="workflow-steps"></div>'; steps = canvas.querySelector('.workflow-steps'); }
+    const m = STEP_META[tool] || {i:'⚙', l: tool};
+    const el = document.createElement('div');
+    el.className = 'workflow-step done';
+    el.innerHTML = `<span class="step-icon">${m.i}</span><span class="step-name">${escapeHtml(m.l)}</span><span class="step-status">✓</span>`;
+    steps.appendChild(el);
+}
+
+function resetWorkflow() {
+    const canvas = document.getElementById('workflow-canvas');
+    if (canvas) canvas.innerHTML = '<div class="workflow-empty"><div class="workflow-empty-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.3"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div><span>No active workflow</span></div>';
+}
+
 // ===== Agent State Management =====
 function setAgentState(name, state) {
     const node = document.getElementById(`agent-${name}`);
@@ -267,6 +310,7 @@ async function sendMessage() {
     setStatus('Orchestrating...', true);
 
     addActivityEntry('user', text);
+    resetWorkflow();
     const thinkingEl = addThinking();
 
     try {
@@ -300,7 +344,8 @@ async function sendMessage() {
                             } else if (data.type === 'agent_state') {
                                 setAgentState(data.agent, data.state || 'working');
                             } else if (data.type === 'tool_activity') {
-                                addActivityEntry('agent', `<span class="tool-run">⚙ <code>${escapeHtml(data.tool)}</code></span>`, true);
+                                addToolActivity(data.tool);
+                                addWorkflowStep(data.tool);
                             } else if (data.type === 'context_update') {
                                 updateContextMeter(data.context_remaining_pct || 100);
                             } else if (data.type === 'meter_update') {
