@@ -28,6 +28,13 @@ else
     EXTRA_ENV=",MCP_TRANSPORT=stdio"
 fi
 
+# Public URL of this service, so the agent can register a Fivetran webhook that
+# points back at our own /api/webhook. After the first deploy, set WEBHOOK_URL to
+# the printed Service URL and redeploy so live webhook creation targets the app.
+if [ -n "${WEBHOOK_URL:-}" ]; then
+    EXTRA_ENV="${EXTRA_ENV},WEBHOOK_URL=${WEBHOOK_URL}"
+fi
+
 echo "=== Deploying Zeus Web UI + Agent ==="
 echo "Project: $PROJECT_ID | Region: $REGION | MCP transport: $MCP_TRANSPORT"
 echo ""

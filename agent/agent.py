@@ -59,11 +59,20 @@ analyst_agent = create_analyst(fivetran_mcp)
 
 # --- Root Agent ---
 # ADK expects a module-level `root_agent` for `adk web` and `adk deploy`.
+# Inject the deployed app's public webhook endpoint so the agent can register a
+# Fivetran webhook pointing back at us. Falls back to a sensible hint locally.
+_webhook_endpoint = (
+    f"{config.WEBHOOK_URL.rstrip('/')}/api/webhook"
+    if config.WEBHOOK_URL
+    else "the /api/webhook endpoint of this application"
+)
+_system_prompt = SYSTEM_PROMPT.replace("WEBHOOK_ENDPOINT_URL", _webhook_endpoint)
+
 root_agent = Agent(
     model=config.GEMINI_MODEL,
     name="zeus",
     description="AI Data Engineer that operates a Fivetran data foundation",
-    instruction=SYSTEM_PROMPT,
+    instruction=_system_prompt,
     tools=[query_bigquery, fivetran_mcp],
     sub_agents=[planner_agent, provisioner_agent, healer_agent, analyst_agent],
     before_tool_callback=before_tool_callback,

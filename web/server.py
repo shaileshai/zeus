@@ -450,29 +450,33 @@ async def _run_agent(message: str, session: "Session"):
                     if event.author in SUB_AGENTS:
                         yield {"type": "agent_state", "agent": event.author, "state": "working"}
 
-                # Look for a pending tool confirmation (the approval gate).
-                confirm_fc = None
+                # Look for pending tool confirmations (the approval gate). A single
+                # model turn can batch several write calls, each of which raises its
+                # own confirmation — we must collect ALL of them and resume with a
+                # response for every one, or Gemini rejects the turn (function call /
+                # response part count must match).
+                confirm_fcs = []
                 for fc in event.get_function_calls():
                     if fc.name == CONFIRM_FC_NAME:
-                        confirm_fc = fc
+                        confirm_fcs.append(fc)
                     else:
                         _bump_meter_for_call(fc.name)
                         yield {"type": "tool_activity", "tool": fc.name, "params": fc.args or {}}
                         yield {"type": "meter_update", **_meter_flat()}
 
-                if confirm_fc is not None:
-                    orig = (confirm_fc.args or {}).get("originalFunctionCall", {}) or {}
-                    conf = (confirm_fc.args or {}).get("toolConfirmation", {}) or {}
-                    approval_id = confirm_fc.id
-                    yield {
-                        "type": "approval_request",
-                        "approval_id": approval_id,
-                        "action": orig.get("name", "write operation"),
-                        "impact": conf.get("hint") or "This will modify your Fivetran data foundation.",
-                        "params": orig.get("args", {}) or {},
-                    }
-                    interrupt = (approval_id, event.invocation_id)
-                    break  # suspend this run; wait for the operator's decision
+                if confirm_fcs:
+                    for confirm_fc in confirm_fcs:
+                        orig = (confirm_fc.args or {}).get("originalFunctionCall", {}) or {}
+                        conf = (confirm_fc.args or {}).get("toolConfirmation", {}) or {}
+                        yield {
+                            "type": "approval_request",
+                            "approval_id": confirm_fc.id,
+                            "action": orig.get("name", "write operation"),
+                            "impact": conf.get("hint") or "This will modify your Fivetran data foundation.",
+                            "params": orig.get("args", {}) or {},
+                        }
+                    interrupt = ([fc.id for fc in confirm_fcs], event.invocation_id)
+                    break  # suspend this run; wait for the operator's decision(s)
 
                 # Tool results → readiness pillars.
                 for fr in event.get_function_responses():
@@ -491,25 +495,27 @@ async def _run_agent(message: str, session: "Session"):
         if interrupt is None:
             break  # turn complete
 
-        # --- Approval round-trip: wait for /api/approve to resolve the future ---
-        approval_id, interrupt_invocation_id = interrupt
+        # --- Approval round-trip: wait for each /api/approve to resolve a future ---
+        approval_ids, interrupt_invocation_id = interrupt
         loop = asyncio.get_event_loop()
-        future: asyncio.Future = loop.create_future()
-        _approval_futures[approval_id] = future
-        try:
-            approved = await asyncio.wait_for(future, timeout=300.0)
-        except asyncio.TimeoutError:
-            approved = False
-            yield {"type": "token", "content": "\n\n⏱️ Approval timed out — action rejected.", "_final": True}
-        finally:
-            _approval_futures.pop(approval_id, None)
+        decisions: dict[str, bool] = {}
+        for approval_id in approval_ids:
+            future: asyncio.Future = loop.create_future()
+            _approval_futures[approval_id] = future
+            try:
+                decisions[approval_id] = await asyncio.wait_for(future, timeout=300.0)
+            except asyncio.TimeoutError:
+                decisions[approval_id] = False
+                yield {"type": "token", "content": "\n\n⏱️ Approval timed out — action rejected.", "_final": True}
+            finally:
+                _approval_futures.pop(approval_id, None)
 
-        # Resume the same invocation with the operator's decision.
+        # Resume the same invocation with a response for EVERY confirmation call.
         content = types.Content(
             role="user",
             parts=[types.Part(function_response=types.FunctionResponse(
-                id=approval_id, name=CONFIRM_FC_NAME, response={"confirmed": approved},
-            ))],
+                id=aid, name=CONFIRM_FC_NAME, response={"confirmed": decisions[aid]},
+            )) for aid in approval_ids],
         )
         invocation_id = interrupt_invocation_id
 

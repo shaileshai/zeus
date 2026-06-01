@@ -40,6 +40,10 @@ BIGQUERY_DATASET = os.getenv("BIGQUERY_DATASET", "zeus_data")
 # the agent itself authenticates to Vertex AI via ADC, not this key.
 GOOGLE_AI_API_KEY = os.getenv("GOOGLE_AI_API_KEY", "")
 
+# Public URL of this deployed app, used so the agent can register a Fivetran
+# webhook that points back at our own /api/webhook endpoint. Set in Cloud Run.
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")
+
 # Web — Cloud Run injects $PORT and the container MUST listen on it; prefer it.
 WEB_HOST = os.getenv("WEB_HOST", "0.0.0.0")
 WEB_PORT = int(os.getenv("PORT") or os.getenv("WEB_PORT") or "8000")
@@ -54,7 +58,7 @@ if GOOGLE_GENAI_USE_VERTEXAI.lower() == "true":
     # resources are unaffected (they route by the resource's own region).
     os.environ["GOOGLE_CLOUD_LOCATION"] = GOOGLE_CLOUD_LOCATION
 
-# Write operations that require human approval (intercepted by McpToolset.require_confirmation)
+# Write operations that require human approval (intercepted by before_tool_callback)
 WRITE_TOOL_PREFIXES = (
     "create_",
     "modify_",
@@ -63,4 +67,6 @@ WRITE_TOOL_PREFIXES = (
     "resync_",
     "run_",
     "update_",
+    "add_",      # add_user_to_group — granting access is a governance write
+    "test_",     # test_webhook — fires a real outbound call
 )
