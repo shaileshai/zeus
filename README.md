@@ -4,8 +4,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**Live demo:** _deploying — public Cloud Run URL will be added here._
-**Demo video:** _link to be added._
+**Live demo:** https://zeus-web-pe7cp6h2la-uc.a.run.app
+**Demo video:** https://youtu.be/IWtYfUCtd08
 
 ## What is Zeus?
 
@@ -56,7 +56,7 @@ Studio API key) to satisfy the hackathon's Gemini + Agent Builder requirement.
 
 ### Run
 ```bash
-git clone https://github.com/YOUR_USERNAME/zeus.git
+git clone https://github.com/shaileshai/zeus.git
 cd zeus
 
 python -m venv .venv && source .venv/bin/activate

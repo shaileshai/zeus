@@ -4,7 +4,7 @@
 
 **Tagline:** The data engineer that builds and maintains your data foundation by itself — on an open, agent-operable control plane.
 
-**Links:** Live app: `[CLOUD_RUN_URL]` · Demo video: `[YOUTUBE_URL]` · Repo: `[GITHUB_URL]`
+**Links:** Live app: https://zeus-web-pe7cp6h2la-uc.a.run.app · Demo video: https://youtu.be/IWtYfUCtd08 · Repo: https://github.com/shaileshai/zeus
 
 ---
 
