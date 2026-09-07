@@ -119,3 +119,16 @@ zeus/
 
 ## License
 MIT — see [LICENSE](./LICENSE)
+
+---
+
+## Support
+
+Questions or issues? We're here to help:
+
+- **Issues:** https://github.com/shaileshai/zeus/issues
+- **Discussions:** https://github.com/shaileshai/zeus/discussions
+
+---
+
+Made with ❤️ by Shailesh
